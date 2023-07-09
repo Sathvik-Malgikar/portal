@@ -1,0 +1,210 @@
+// Server.cpp
+
+// Include necessary headers
+#include "pch.h"
+#include <afxsock.h> // MFC socket classes
+#include <afxdb.h>   // MFC database classes
+
+
+// Server class derived from CAsyncSocket
+class CServerSocket : public CAsyncSocket
+{
+public:
+    CDatabase m_database; // MFC database object
+
+    // Constructor
+    CServerSocket()
+    {
+        // Initialize MFC database
+        m_database.OpenEx(_T("DSN=YourDSN;"), CDatabase::noOdbcDialog);
+    }
+
+    // Override OnAccept function to handle client connection
+    virtual void OnAccept(int nErrorCode)
+    {
+        if (nErrorCode == 0) {
+
+        // Create a new socket for the client
+        CServerSocket* pClientSocket = new CServerSocket();
+
+        // Accept the connection
+        Accept(*pClientSocket);
+
+        // Process client requests
+        pClientSocket->ProcessRequests();
+
+        // Clean up the client socket
+        delete pClientSocket;
+        }
+        
+    }
+
+    // Function to process client requests
+
+    void ProcessRequests()
+    {
+        char buffer[1024];
+        int bytesRead;
+
+        while ((bytesRead = Receive(buffer, sizeof(buffer))) > 0)
+        {
+            // Convert received data to a string
+            CString request(buffer, bytesRead);
+
+            // Process the request and communicate with the database
+            CString response;
+
+            // TODO: Handle different types of requests
+            if (request == "RADALT_TEST_CASE_1")
+            {
+                // Example: Execute a database query
+                CRecordset recordSet(&m_database);
+                CString query = _T("SELECT * FROM YourTable");
+                recordSet.Open(CRecordset::forwardOnly, query);
+
+                // TODO: Process the query result and generate a response
+                // Example: Append query results to the response string
+                while (!recordSet.IsEOF())
+                {
+                    // Example: Get the value of a column and append it to the response
+                    CString columnValue;
+                    recordSet.GetFieldValue((short)0, (CString)columnValue);
+                    response.Append(columnValue);// += columnValue + "\n";
+
+                    recordSet.MoveNext();
+                }
+
+                recordSet.Close();
+            }
+            else
+            {
+                // TODO: Handle other types of requests
+                // Example: Return an error response for unsupported requests
+                response = "ERROR: Unsupported request";
+            }
+
+            // Send the response back to the client
+            Send((LPCTSTR)response.GetBuffer(), response.GetLength());
+        }
+
+        if (bytesRead < 0)
+        {
+            // Receive error
+            // TODO: Handle the receive error
+        }
+    }
+
+};
+
+int ServerMain()
+{
+    // Initialize MFC
+    AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0);
+
+    // Create a server socket object
+    CServerSocket serverSocket;
+
+    // Create a socket to listen for client connections
+    if (!serverSocket.Create(1234)) // Specify the desired port number
+    {
+        // Socket creation error
+        // TODO: Handle the socket creation error
+        return 1;
+    } // Specify the desired port number
+
+    // Start listening for client connections
+    if (!serverSocket.Listen())
+    {
+        // Listen error
+        // TODO: Handle the listen error
+        return 1;
+    }
+    // Wait for incoming connections
+    while (true)
+    {
+        // Do nothing and wait for client connections
+    }
+    return 0;
+}
+
+
+// Client class derived from CAsyncSocket
+class CClientSocket : public CAsyncSocket
+{
+public:
+    // Override OnConnect function to handle connection establishment
+    virtual void OnConnect(int nErrorCode)
+    {
+        if (nErrorCode == 0)
+        {
+            // Connection established successfully
+            // TODO: Send test case requests to the server
+
+            // Example: Sending a test case request
+            CString request = _T("RADALT_TEST_CASE_1");
+            Send((LPCTSTR)request.GetBuffer(), request.GetLength());
+        }
+        else
+        {
+            // Connection error
+            // TODO: Handle the connection error
+        }
+    }
+
+    // Override OnReceive function to handle server responses
+    virtual void OnReceive(int nErrorCode)
+    {
+        if (nErrorCode == 0)
+        {
+            // Data received successfully
+            // TODO: Receive and process server responses
+
+            // Example: Processing a server response
+            char buffer[1024];
+            int bytesRead = Receive(buffer, sizeof(buffer));
+            if (bytesRead > 0)
+            {
+                // Convert received data to a string
+                CString response(buffer, bytesRead);
+
+                // TODO: Process the response
+                // Example: Print the response to the console
+                printf("Server response: %S\n", (LPCTSTR)response);
+            }
+        }
+        else
+        {
+            // Receive error
+            // TODO: Handle the receive error
+        }
+    }
+};
+
+int ClientMain()
+{
+    // Initialize MFC
+    AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0);
+
+    // Create a client socket object
+    CClientSocket clientSocket;
+
+    // Connect to the server
+    clientSocket.Connect(_T("127.0.0.1"), 1234); // Specify the server IP address and port number
+
+    // Start the client message loop
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return 0;
+}
+
+int main() {
+
+    ClientMain();
+    ServerMain();
+
+    return 0;
+}
