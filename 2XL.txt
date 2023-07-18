@@ -1,0 +1,15 @@
+Option Compare Database
+
+Private Sub Command4_Click()
+
+Dim fileName As String
+Dim filePath As String
+
+filePath = Environ("userprofile") & "\Desktop\Inventory"
+fileName = filePath & ".XLSX"
+
+
+DoCmd.OutputTo acOutputQuery, "Form1", acFormatXLSX, fileName, , , , acExportQualityPrint
+
+MsgBox "ere"
+End Sub
