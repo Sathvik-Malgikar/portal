@@ -1,0 +1,8 @@
+create data table and comboBox
+create testcases table and set recorde source for form.
+load some box from master table make new record button save to testcasae tables via control source add validation and types add combo box to fetch name
+add button to export to excel CODE
+make disable ongotfocus for new testcase button and enable after update for last combobox
+ENABLED / VISIBLE choose
+add button and text box below one nother add validation by square brackets just to be 0 or 1 
+then add onclick if condition single assignment and using the tab order but just for the names

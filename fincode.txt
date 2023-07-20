@@ -1,0 +1,46 @@
+  On Error GoTo ErrHandler
+
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+    Dim xlApp As Object
+    Dim xlWB As Object
+    Dim xlSheet As Object
+    Dim i As Integer
+
+    ' Set your table name
+    Dim tableName As String
+    tableName = "YourTableName"
+
+    ' Initialize Excel application
+    Set xlApp = CreateObject("Excel.Application")
+    xlApp.Visible = True ' Change to False if you don't want to see Excel
+
+    ' Create a new workbook and add a worksheet
+    Set xlWB = xlApp.Workbooks.Add
+    Set xlSheet = xlWB.Worksheets(1)
+
+    ' Open the database and the recordset
+    Set db = CurrentDb
+    Set rs = db.OpenRecordset(tableName)
+
+    ' Write field names to the first row of the Excel sheet
+    For i = 0 To rs.Fields.Count - 1
+        xlSheet.Cells(1, i + 1).Value = rs.Fields(i).Name
+    Next i
+
+    ' Write data to the Excel sheet
+    xlSheet.Range("A2").CopyFromRecordset rs
+
+    ' Clean up
+    rs.Close
+    Set rs = Nothing
+    Set db = Nothing
+    Set xlSheet = Nothing
+    Set xlWB = Nothing
+    Set xlApp = Nothing
+
+    Exit Sub
+
+ErrHandler:
+    ' Add error handling code if needed
+    MsgBox "An error occurred: " & Err.Description, vbExclamation
